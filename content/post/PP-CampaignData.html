@@ -1,0 +1,76 @@
+---
+title: "Analysis of Campaign Expenditure"
+author: "Kush Tekriwal"
+date: "7/17/2017"
+output: html_document
+---
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>My interest in this subject stemmed primarily from the 2016 elections and the magnitude of the events. Once I began to explore the data set, I wondered how much the candidates spent on travel. I focused to analyse a correlation between the amount spent on travel and the length of each candidate’s campaign.</p>
+<p>Question: How does travel cost as a proportion of overall spending budget correlate with approval ratings and duration of campaign?</p>
+</div>
+<div id="the-data-set" class="section level2">
+<h2>The Data Set</h2>
+<p>The Federal Election Commission requires candidates to make their campaign expenditures public. Since the data is seperated by candidates, I have used ten csv files as my data set. Below is a list of all the variables in the data set.</p>
+<pre><code>##  [1] &quot;cmte_id&quot;        &quot;cand_id&quot;        &quot;cand_nm&quot;        &quot;recipient_nm&quot;  
+##  [5] &quot;disb_amt&quot;       &quot;disb_dt&quot;        &quot;recipient_city&quot; &quot;recipient_st&quot;  
+##  [9] &quot;recipient_zip&quot;  &quot;disb_desc&quot;      &quot;memo_cd&quot;        &quot;memo_text&quot;     
+## [13] &quot;form_tp&quot;        &quot;file_num&quot;       &quot;tran_id&quot;        &quot;election_tp&quot;</code></pre>
+<p>cmte_id incdicates the committee ID.<br />
+cand_id indicates the candidate ID.<br />
+cand_nm indicates the candidate name.<br />
+recipient_nm is the name of the recipient of the expenditure.<br />
+disc_amt shows the amount spent.<br />
+disb_dt represents the date of the expenditure.<br />
+recipient_city is the city where the expenditure was made.<br />
+recipient_st is the state where the expenditure was made.<br />
+recipient_zip is the zip code where the expenditure was made.<br />
+desc_desc describes what the money was spent on.<br />
+memo_text is the text in memo.<br />
+file_num is the file number.<br />
+tran_id is the transaction ID.<br />
+election_tp is the year of the elections.</p>
+</div>
+<div id="preliminary-analysis" class="section level2">
+<h2>Preliminary Analysis</h2>
+<p>I decided to calculate the cost of travel as a proportion of total expenditure. This is because each candidate had a different budget. As a result, candidates with a higher budget would inevitable spend more on travel. This proportion would eliminate the discrepencies due to the differing budgets.</p>
+<p>To illustrate my analysis, I have used Jeb Bush as an example.</p>
+<pre class="r"><code>bush = read_csv(&quot;P60008059D-ALL.csv&quot;)
+bush.total = sum(bush[5])
+travel.bush = bush[bush[10] == &quot;TRAVEL&quot;,]
+travel.total_bush = sum(travel.bush[5])
+proportion.bush = travel.total_bush / bush.total</code></pre>
+</div>
+<div id="plotting-the-data" class="section level2">
+<h2>Plotting the data</h2>
+<p>After calculating a proportion for each candidate, I plotted a graph of each candidate’s proportion, as seen below.</p>
+<p><img src="/post/PP-CampaignData_files/figure-html/plot-1.png" width="672" /></p>
+</div>
+<div id="correlation" class="section level2">
+<h2>Correlation</h2>
+<p>Once I thoroughly explored my data, I began to investigate the degree of correlation between cost of travel with approval ratings and duration of campaign.</p>
+<p>Hypothesis: My hypothesis was that a higher proportion of travel cost should correlate to a higher approval rating and longer duration of campaign.</p>
+<p>Approval Ratings: When finding the approval ratings of the different candidates, I stumbled upon an interesting finding. There is no correlation between the cost of travel and approval ratings. As an example to illustrate this finding, I will use Donald Trump. As most of the country knows, Trump has very low approval ratings due to external factors, even though he has one of the highest expenditures on travel. Similarly, I learnt that most candidates’ approval ratings had almost no correlation with the proportion of travel cost. As a result, I did not dig deeper into this factor and concentrated my efforts on the duration of the campaign.</p>
+<p>Duration of Campaign: To find the durations of each candidates’ campaign, I used Wikipedia. I calculated the duration in months, from the official announcement to the official suspension of the campaign. I stored each of the values in a vector and created a data frame with this new data.</p>
+<pre class="r"><code>duration = c(6, 10, 13, 19, 13, 5, 8, 11, 2, 13)
+duration.data = data.frame(
+  Candidate = candidate,
+  Proportion = proportions,
+  Duration = duration
+)
+correlation.fit = lm(Proportion ~ Duration, data = duration.data)
+summary(correlation.fit)$r.squared</code></pre>
+<pre><code>## [1] 0.1851077</code></pre>
+</div>
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>During my preliminary analysis, I concluded that approval ratings have almost no correlation with travel cost as a proportion of overall expenditure. I was initially surpised by this finding, as I hypothised that candidates that hold more events will have more supporters, and hence a higher approval rating. However, I did not account for the influence of external factors and other reasons listed below.</p>
+<p>My r-squared value for the correlation of proportion and duration was around 18%. I understand that this is a very small value, which probably signifies that there is no correlation. I still believe, however, that there has to be an underlying relationship, but due to the reasons listed below, the value differs largely.</p>
+<p>Reasons for inaccuracy:<br />
+-Cost of travel not accurate: In the dataset, under the description for the expense, the labels were not consistent leading to incomplete cost calculations.<br />
+-Lifestyle: Each candidate has a different lifestyle, and therefore travels in different condidions. Therefore, the cost is not a consistent representation.<br />
+-Non-campaign trips: Not all travel costs have the purpose to campaign.</p>
+</div>

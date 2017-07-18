@@ -1,0 +1,167 @@
+---
+title: "Analysis of Campaign Expenditure"
+author: "Kush Tekriwal"
+date: "7/17/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+library(readr)
+library(ggplot2)
+```
+
+## Introduction
+My interest in this subject stemmed primarily from the 2016 elections and the magnitude of the events. Once I began to explore the data set, I wondered how much the candidates spent on travel. I focused to analyse a correlation between the amount spent on travel and the length of each candidate's campaign. 
+
+Question: How does travel cost as a proportion of overall spending budget correlate with approval ratings and duration of campaign?
+
+## The Data Set
+The Federal Election Commission requires candidates to make their campaign expenditures public. Since the data is seperated by candidates, I have used ten csv files as my data set. Below is a list of all the variables in the data set.
+
+```{r variables, echo=FALSE}
+variable.names(read_csv("P60008059D-ALL.csv"))
+```
+
+cmte_id incdicates the committee ID.  
+cand_id indicates the candidate ID.  
+cand_nm indicates the candidate name.  
+recipient_nm is the name of the recipient of the expenditure.  
+disc_amt shows the amount spent.  
+disb_dt represents the date of the expenditure.   
+recipient_city is the city where the expenditure was made.    
+recipient_st is the state where the expenditure was made.   
+recipient_zip is the zip code where the expenditure was made.    
+desc_desc describes what the money was spent on.   
+memo_text is the text in memo.  
+file_num is the file number.  
+tran_id is the transaction ID.     
+election_tp is the year of the elections. 
+
+## Preliminary Analysis
+I decided to calculate the cost of travel as a proportion of total expenditure. This is because each candidate had a different budget. As a result, candidates with a higher budget would inevitable spend more on travel. This proportion would eliminate the discrepencies due to the differing budgets.
+
+To illustrate my analysis, I have used Jeb Bush as an example.
+
+```{r analysis, include=FALSE}
+bush = read_csv("P60008059D-ALL.csv")
+clinton = read_csv("P00003392D-ALL.csv")
+trump = read_csv("P80001571D-ALL.csv")
+cruz = read_csv("P60006111D-ALL.csv")
+malley = read_csv("P60007671D-ALL.csv")
+carson = read_csv("P60005915D-ALL.csv")
+sanders = read_csv("P60007168D-ALL.csv")
+jindal = read_csv("P60008398D-ALL.csv")
+walker = read_csv("P60006046D-ALL.csv")
+rubio = read_csv("P60006723D-ALL.csv")
+
+bush.total = sum(bush[5])
+clinton.total = sum(clinton[5])
+trump.total = sum(trump[5])
+cruz.total = sum(cruz[5])
+malley.total = sum(malley[5])
+carson.total = sum(carson[5])
+sanders.total = sum(sanders[5])
+jindal.total = sum(jindal[5])
+walker.total = sum(walker[5])
+rubio.total = sum(rubio[5])
+
+travel.bush = bush[bush[10] == "TRAVEL",]
+travel.total_bush = sum(travel.bush[5])
+proportion.bush = travel.total_bush / bush.total
+
+travel.clinton = clinton[clinton[10] == "TRAVEL",]
+travel.total_clinton = sum(travel.clinton[5])
+proportion.clinton = travel.total_clinton / clinton.total
+
+travel.trump = trump[trump[10] == "TRAVEL: AIR",]
+travel.total_trump = sum(travel.trump[5], na.rm = TRUE)
+proportion.trump = travel.total_trump / trump.total
+
+travel.cruz = cruz[cruz[10] == "TRAVEL",]
+travel.total_cruz = sum(travel.cruz[5], na.rm = TRUE)
+proportion.cruz = travel.total_cruz / cruz.total
+
+travel.malley = malley[malley[10] == "TRAVEL EXPENSE",]
+travel.total_malley = sum(travel.malley[5], na.rm = TRUE)
+proportion.malley = travel.total_malley / malley.total
+
+travel.carson = carson[carson[10] == "TRAVEL",]
+travel.total_carson = sum(travel.carson[5], na.rm = TRUE)
+proportion.carson = travel.total_carson / carson.total
+
+travel.sanders = sanders[sanders[10] == "AIR TRAVEL",]
+travel.total_sanders = sum(travel.sanders[5], na.rm = TRUE)
+proportion.sanders = travel.total_sanders / sanders.total
+
+travel.jindal = jindal[(jindal[10] == "TRAVEL EXPENSE") | (jindal[10] == "TRAVEL EXPENSES"),]
+travel.total_jindal = sum(travel.jindal[5], na.rm = TRUE)
+proportion.jindal = travel.total_jindal / jindal.total
+
+travel.walker = walker[(walker[10] == "CREDIT CARD PAYMENT: TRAVEL: AIR") | (walker[10] == "TRAVEL: AIR"),]
+travel.total_walker = sum(travel.walker[5], na.rm = TRUE)
+proportion.walker = travel.total_walker / walker.total
+
+travel.rubio = rubio[rubio[10] == "TRAVEL",]
+travel.total_rubio = sum(travel.rubio[5], na.rm = TRUE)
+proportion.rubio = travel.total_rubio / rubio.total
+
+proportions = c(proportion.bush, proportion.clinton, proportion.trump, proportion.cruz, proportion.malley, proportion.carson, proportion.sanders, proportion.jindal, proportion.walker, proportion.rubio)
+candidate = c("Bush","Clinton","Trump", "Cruz","Malley","Carson","Sanders","Jindal", "Walker","Rubio")
+
+all.data = data.frame(
+  Candidate = candidate,
+  Proportion = proportions
+)
+```
+
+```{r bush, echo=TRUE}
+bush = read_csv("P60008059D-ALL.csv")
+bush.total = sum(bush[5])
+travel.bush = bush[bush[10] == "TRAVEL",]
+travel.total_bush = sum(travel.bush[5])
+proportion.bush = travel.total_bush / bush.total
+```
+
+## Plotting the data
+After calculating a proportion for each candidate, I plotted a graph of each candidate's proportion, as seen below.
+
+```{r plot, echo=FALSE}
+ggplot(data = all.data, aes(x = Candidate, y = Proportion, stat = "stat_identity")) + geom_col() + scale_y_continuous() + theme(axis.text.x=element_text(angle = 45, hjust = 1)) + labs(x = "2016 Presedential Candidates", y = "Proportion",title = "Proportion of each Candidate's Total Campaign Expenditure Spent on Travel")
+```
+
+## Correlation
+Once I thoroughly explored my data, I began to investigate the degree of correlation between cost of travel with approval ratings and duration of campaign. 
+
+Hypothesis: My hypothesis was that a higher proportion of travel cost should correlate to a higher approval rating and longer duration of campaign. 
+
+Approval Ratings: When finding the approval ratings of the different candidates, I stumbled upon an interesting finding. There is no correlation between the cost of travel and approval ratings. As an example to illustrate this finding, I will use Donald Trump. As most of the country knows, Trump has very low approval ratings due to external factors, even though he has one of the highest expenditures on travel. Similarly, I learnt that most candidates' approval ratings had almost no correlation with the proportion of travel cost. As a result, I did not dig deeper into this factor and concentrated my efforts on the duration of the campaign. 
+
+Duration of Campaign: To find the durations of each candidates' campaign, I used Wikipedia. I calculated the duration in months, from the official announcement to the official suspension of the campaign. I stored each of the values in a vector and created a data frame with this new data. 
+
+```{r duration}
+duration = c(6, 10, 13, 19, 13, 5, 8, 11, 2, 13)
+duration.data = data.frame(
+  Candidate = candidate,
+  Proportion = proportions,
+  Duration = duration
+)
+correlation.fit = lm(Proportion ~ Duration, data = duration.data)
+summary(correlation.fit)$r.squared
+```
+
+## Results
+During my preliminary analysis, I concluded that approval ratings have almost no correlation with travel cost as a proportion of overall expenditure. I was initially surpised by this finding, as I hypothised that candidates that hold more events will have more supporters, and hence a higher approval rating. However, I did not account for the influence of external factors and other reasons listed below. 
+
+My r-squared value for the correlation of proportion and duration was around 18%. I understand that this is a very small value, which probably signifies that there is no correlation. I still believe, however, that there has to be an underlying relationship, but due to the reasons listed below, the value differs largely. 
+
+Reasons for inaccuracy:  
+-Cost of travel not accurate: In the dataset, under the description for the expense, the labels were not consistent leading to incomplete cost calculations.  
+-Lifestyle: Each candidate has a different lifestyle, and therefore travels in different condidions. Therefore, the cost is not a consistent representation.  
+-Non-campaign trips: Not all travel costs have the purpose to campaign.  
+
+
